@@ -34,6 +34,12 @@ parameters:
     type: string
     default: 10.255.255.0/24
 
+  JumpFloatingIpID:
+    description: JumpFloatingIpID
+    type: string
+    default: ac97f8b9-437e-47b3-89e3-fa4527326b1b
+
+
 resources:
   Net:
     type: OS::Neutron::Net
@@ -67,19 +73,86 @@ resources:
     type: OS::Neutron::RouterInterface
     properties:
       router: { get_resource: Router }
-      subnet: { get_resource: Subnet}
-  #Instance:
-  #  type: OS::Nova::Server
-  #  properties:
+      subnet: { get_resource: Subnet }
+
+  JumpPrivateSecurityGroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'jump-security-group' ] ] }
+      rules: [
+      { direction: ingress, ethertype: IPv4, protocol: tcp, port_range_min: 22, port_range_max: 22, remote_ip_prefix: 158.193.0.0/16 },
+      { direction: ingress, ethertype: IPv4, protocol: icmp, remote_ip_prefix: 158.193.0.0/16 }
+      ]
+
+
+  JumpPort:
+    type: OS::Neutron::Port
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'jump-port' ] ] }
+      fixed_ips:
+        - subnet: { get_resource: Subnet}
+      security_groups:
+        - { get_resource: JumpPrivateSecurityGroup }
+      network: { get_resource: Net }
+
+  JumpFloatingIpAssocation:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_param: JumpFloatingIpID }
+      port_id: { get_resource: JumpPort }
+
+  Jump:
+    type: OS::Nova::Server
+    properties:
       #name: instance-cv3
-  #    name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'instance' ] ] }
-  #    availability_zone: { get_param: 'AvailabilityZone' }
-  #    flavor: { get_param: 'Flavor' }
-  #    image: { get_param: 'Image' }
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'jump' ] ] }
+      availability_zone: { get_param: 'AvailabilityZone' }
+      flavor: { get_param: 'Flavor' }
+      image: { get_param: 'Image' }
       #network: { get_param: 'Network' }
-  #    networks:
-  #      - network: {get_param: 'Network'}
-  #    user_data: |
+      networks:
+        - subnet: { get_resource: JumpPort }
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            hostname $Environment-jump
+            echo "JumpCloud"
+          params:
+            $Environment: { get_param: Enviroment }
+      user_data_format: RAW
+
+  Proxy:
+    type: OS::Nova::Server
+    properties:
+      #name: instance-cv3
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'proxy' ] ] }
+      availability_zone: { get_param: 'AvailabilityZone' }
+      flavor: { get_param: 'Flavor' }
+      image: { get_param: 'Image' }
+      #network: { get_param: 'Network' }
+      networks:
+        - subnet: { get_resource: Subnet }
+      user_data: |
         #!/bin/bash
-  #      apt-get update -y
-  #    user_data_format: RAW
+        echo "ProxyCloud" > /etc/hostname
+        apt-get install update
+      user_data_format: RAW
+
+  App:
+    type: OS::Nova::Server
+    properties:
+      #name: instance-cv3
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'app' ] ] }
+      availability_zone: { get_param: 'AvailabilityZone' }
+      flavor: { get_param: 'Flavor' }
+      image: { get_param: 'Image' }
+      #network: { get_param: 'Network' }
+      networks:
+        - subnet: { get_resource: Subnet }
+      user_data: |
+        #!/bin/bash
+        echo "AppCloud" > /etc/hostname
+        apt-get install apache -y
+        apt-get update
+      user_data_format: RAW
