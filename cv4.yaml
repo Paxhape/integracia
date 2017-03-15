@@ -1,13 +1,13 @@
 ---
 heat_template_version: 2016-04-08
 
-description: sample template cv.3
+description: basic infrastructure cv.4
 
 parameters:
   Cvicenie:
     description: Cisclo cvicenia
     type: string
-    default: cv3
+    default: cv4
 
   AvailabilityZone:
     description: Availability zone
@@ -22,26 +22,32 @@ parameters:
   Image:
     description: Image
     type: string
-    default: cirros
+    default: Ubuntu server 14.04 amd64 KIS
 
-  Network:
-    description: Network
+  Enviroment:
+    description: Enviroment
     type: string
-    default: ext-net
+    default: test
 
 resources:
-  Instance:
-    type: OS::Nova::Server
+  Net:
+    type: OS::Neutron::Net
     properties:
+      admin_state_up: True
+      name: {list_join: [ '-', [ { get_param: 'Enviroment' }, 'network' ] ] }
+      shared: False
+  #Instance:
+  #  type: OS::Nova::Server
+  #  properties:
       #name: instance-cv3
-      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'instance' ] ] }
-      availability_zone: { get_param: 'AvailabilityZone' }
-      flavor: { get_param: 'Flavor' }
-      image: { get_param: 'Image' }
+  #    name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'instance' ] ] }
+  #    availability_zone: { get_param: 'AvailabilityZone' }
+  #    flavor: { get_param: 'Flavor' }
+  #    image: { get_param: 'Image' }
       #network: { get_param: 'Network' }
-      networks:
-        - network: {get_param: 'Network'}
-      user_data: |
+  #    networks:
+  #      - network: {get_param: 'Network'}
+  #    user_data: |
         #!/bin/bash
-        apt-get update -y
-      user_data_format: RAW
+  #      apt-get update -y
+  #    user_data_format: RAW
