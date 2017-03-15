@@ -136,7 +136,6 @@ resources:
       user_data: |
         #!/bin/bash
         echo "ProxyCloud" > /etc/hostname
-        apt-get install update
       user_data_format: RAW
 
   App:
@@ -154,5 +153,4 @@ resources:
         #!/bin/bash
         echo "AppCloud" > /etc/hostname
         apt-get install apache -y
-        apt-get update
       user_data_format: RAW
