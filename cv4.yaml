@@ -29,13 +29,45 @@ parameters:
     type: string
     default: test
 
+  SubnetCidr:
+    description: SubnetCidr
+    type: string
+    default: 10.255.255.0/24
+
 resources:
   Net:
     type: OS::Neutron::Net
     properties:
       admin_state_up: True
-      name: {list_join: [ '-', [ { get_param: 'Enviroment' }, 'network' ] ] }
+      name: { list_join: [ '-', [ { get_param: 'Enviroment' }, 'network' ] ] }
       shared: False
+
+  Subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Enviroment' }, 'subnet' ] ] }
+      cidr: { get_param: SubnetCidr }
+      dns_nameservers:
+        - 8.8.8.8
+        - 158.193.152.2
+      enable_dhcp: True
+      network: { get_resource: Net }
+
+  Router:
+    type: OS::Neutron::Router
+    properties:
+      admin_state_up: True
+      name: { list_join: [ '-', [ { get_param: 'Enviroment' }, 'router' ] ] }
+      external_gateway_info: {
+        enable_snat: True,
+        network: ext-net
+        }
+
+  RouterInterface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: Router }
+      subnet: { get_resource: Subnet}
   #Instance:
   #  type: OS::Nova::Server
   #  properties:
