@@ -1,30 +1,30 @@
 ---
 heat_template_version: 2016-04-08
 
-description: testing
+description: sample template cv.3
 
 parameters:
   Cvicenie:
-    description: Cislo cvicenia
+    description: Cisclo cvicenia
     type: string
     default: cv3
 
-AvailabilityZone:
+  AvailabilityZone:
     description: Availability zone
     type: string
     default: any
 
-Flavor:
-    description: flavor
+  Flavor:
+    description: Flavor
     type: string
     default: Linux
 
-Image:
+  Image:
     description: Image
     type: string
     default: cirros
 
-Network:
+  Network:
     description: Network
     type: string
     default: ext-net
@@ -33,13 +33,15 @@ resources:
   Instance:
     type: OS::Nova::Server
     properties:
-      #name: insta
-      name: { list_join:[ '-', [ { get_param: "Cvicenie" }, 'instance' ] ] }
-      availability_zone: { get_param: 'AvailabilityZone'}
+      #name: instance-cv3
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'instance' ] ] }
+      availability_zone: { get_param: 'AvailabilityZone' }
       flavor: { get_param: 'Flavor' }
-      image:  { get_param: 'Image' }
-      network: { get_param: 'Network' }
+      image: { get_param: 'Image' }
+      #network: { get_param: 'Network' }
+      networks:
+        - network: {get_param: 'Network'}
       user_data: |
-       #!/bin/bash
-       apt-get update -y
+        #!/bin/bash
+        apt-get update -y
       user_data_format: RAW
