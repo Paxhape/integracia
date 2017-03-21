@@ -112,7 +112,7 @@ resources:
       #network: { get_param: 'Network' }
       networks:
         - port: { get_resource: JumpPort }
-        - subnet: { get_resource: Subnet }
+        #- subnet: { get_resource: Subnet }
       user_data:
         str_replace:
           template: |
