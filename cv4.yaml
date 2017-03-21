@@ -153,4 +153,5 @@ resources:
       user_data: |
         #!/bin/bash
         echo "AppCloud" > /etc/hostname
+        apt-get update -y && apt-get install apache2 -y
       user_data_format: RAW
