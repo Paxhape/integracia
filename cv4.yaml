@@ -111,7 +111,8 @@ resources:
       image: { get_param: 'Image' }
       #network: { get_param: 'Network' }
       networks:
-        - subnet: { get_resource: JumpPort }
+        - port: { get_resource: JumpPort }
+        - subnet: { get_resource: Subnet }
       user_data:
         str_replace:
           template: |
@@ -152,5 +153,4 @@ resources:
       user_data: |
         #!/bin/bash
         echo "AppCloud" > /etc/hostname
-        apt-get install apache -y
       user_data_format: RAW
