@@ -84,7 +84,6 @@ resources:
       { direction: ingress, ethertype: IPv4, protocol: icmp, remote_ip_prefix: 158.193.0.0/16 }
       ]
 
-
   JumpPort:
     type: OS::Neutron::Port
     properties:
@@ -121,7 +120,22 @@ resources:
             echo "JumpCloud"
           params:
             $Environment: { get_param: Enviroment }
-      user_data_format: RAW
+      user_data_format: RAW7
+
+  ProxyFloatingIpAssocation:
+
+  ProxyPort:
+    type: OS::Neutron::Port
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'jump-port' ] ] }
+      fixed_ips:
+        - subnet: { get_resource: Subnet}
+      security_groups:
+        - { get_resource: JumpPrivateSecurityGroup }
+      network: { get_resource: Net }
+
+
+  ProxyPrivateSecurityGroup:
 
   Proxy:
     type: OS::Nova::Server
@@ -139,6 +153,26 @@ resources:
         echo "ProxyCloud" > /etc/hostname
       user_data_format: RAW
 
+  AppSecurityGroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'app-security-group' ] ] }
+      rules: [
+      { direction: ingress, ethertype: IPv4, protocol: tcp, port_range_min: 22, port_range_max: 22, remote_ip_prefix: 158.193.0.0/16 },
+      { direction: ingress, ethertype: IPv4, protocol: tcp, port_range_min: 80, port_range_max: 80, remote_ip_prefix: 158.193.0.0/16 },
+      { direction: ingress, ethertype: IPv4, protocol: icmp, remote_ip_prefix: 158.193.0.0/16 }
+      ]
+
+  AppPort:
+    type: OS::Neutron::Port
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Cvicenie' }, 'app-port' ] ] }
+      fixed_ips:
+        - subnet: { get_resource: Subnet}
+      security_groups:
+        - { get_resource: AppSecurityGroup }
+      network: { get_resource: Net }
+
   App:
     type: OS::Nova::Server
     properties:
@@ -149,7 +183,7 @@ resources:
       image: { get_param: 'Image' }
       #network: { get_param: 'Network' }
       networks:
-        - subnet: { get_resource: Subnet }
+        - port: { get_resource: JumpPort }
       user_data: |
         #!/bin/bash
         echo "AppCloud" > /etc/hostname
