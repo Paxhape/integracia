@@ -36,12 +36,12 @@ parameters:
   JumpFloatingIpID:
     description: JumpFloatingIpID
     type: string
-    default: a4ea5df2-b671-4666-b520-91336d4a4d89
+    default: ac97f8b9-437e-47b3-89e3-fa4527326b1b
 
   ProxyFloatingIpID:
     description: ProxyFloatingIpID
     type: string
-    default: d2802a37-d42c-448d-8777-a3bd06bd1e83
+    default: 2c57cd4d-32e5-44a5-8225-1e069136e339
 
 resources:
   Net:
@@ -142,6 +142,18 @@ resources:
         - { get_resource: AppPrivateSecurityGroup }
       network: { get_resource: Net }
 
+  JumpFloatingIpAssociation:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_param: JumpFloatingIpID }
+      port_id: { get_resource: JumpPort }
+
+  ProxyFloatingIpAssociation:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_param: ProxyFloatingIpID }
+      port_id: { get_resource: ProxyPort }
+
   Jump:
     type: OS::Nova::Server
     properties:
@@ -203,15 +215,3 @@ resources:
           params:
             $Enviroment: { get_param: Enviroment }
       user_data_format: RAW
-
-  JumpFloatingIpAssociation:
-    type: OS::Neutron::FloatingIPAssociation
-    properties:
-      floatingip_id: { get_param: JumpFloatingIpID }
-      port_id: { get_resource: JumpPort }
-
-  ProxyFloatingIpAssociation:
-    type: OS::Neutron::FloatingIPAssociation
-    properties:
-      floatingip_id: { get_param: ProxyFloatingIpID }
-      port_id: { get_resource: ProxyPort }
