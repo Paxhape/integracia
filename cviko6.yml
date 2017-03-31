@@ -33,10 +33,10 @@ parameters:
     type: string
     default: 10.255.255.0/24
 
-  SubnetCidr:
-    description: SubnetCidr
+  PrivateSubnetCidr:
+    description: PrivateSubnetCidr
     type: string
-    default: 10.255.255.0/24
+    default: 10.255.254.0/24
 
   JumpFloatingIpID:
     description: JumpFloatingIpID
@@ -67,6 +67,17 @@ resources:
       enable_dhcp: True
       network: { get_resource: Net }
 
+  PrivateSubnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: { list_join: [ '-', [ { get_param: 'Enviroment' }, 'network' ] ] }
+      cidr: { get_param: PrivateSubnetCidr }
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+      enable_dhcp: True
+      network: { get_resource: Net }
+
   Router:
     type: OS::Neutron::Router
     properties:
@@ -82,6 +93,12 @@ resources:
     properties:
       router: { get_resource: Router }
       subnet: { get_resource: Subnet }
+
+  RouterInterface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: Router }
+      subnet: { get_resource: PrivateSubnet }
 
   JumpPrivateSecurityGroup:
     type: OS::Neutron::SecurityGroup
