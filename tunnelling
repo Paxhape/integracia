@@ -1,0 +1,1 @@
+ssh -f user@stroj -L localPort:jumpNeighborIp:jumpNeighborIpPort -N
